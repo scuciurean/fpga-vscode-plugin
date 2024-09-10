@@ -1,0 +1,59 @@
+1. Workspace Detection:
+    Functionality: Detect whether the currently opened workspace in VS Code is a valid project folder or not.
+    Steps:
+    Check for the existence of a specific project configuration file (e.g., .vscode/fpgaproj or another config file).
+    If the configuration file exists, treat the workspace as a valid project and proceed to load its information.
+    If the configuration file doesn’t exist, show the "Create New Project" button.
+2. Project Configuration Management:
+    Functionality: Load and manage the project configuration.
+    Steps:
+    Define a structure for the project configuration file (.vscode/fpgaproj or another file) to store relevant project information, such as the type of project, the source directories, and other metadata.
+    When a project is opened, read this configuration file and display its structure in the Project Manager tab.
+3. Create New Project Workflow:
+    Functionality: Provide a "Create New Project" button if the workspace folder is not a project.
+    Steps:
+    When the "Create New Project" button is clicked, initiate a project creation wizard that guides the user through setting up a new project (e.g., selecting project type, defining folder structure, etc.).
+    Save the project configuration into .vscode/fpgaproj or another suitable location within the workspace folder.
+4. Project Structure Display:
+    Functionality: Visualize the project structure in the Project Manager tab.
+    Steps:
+    Once the project configuration is loaded, display the project structure in a tree view.
+    Allow the user to interact with the project structure (e.g., open source files, view configuration, etc.).
+    If no project configuration exists, show an empty state or allow the user to create a new project.
+5. Dynamic UI Updates:
+    Functionality: The UI in the Project Manager tab should change dynamically based on the project status.
+    Steps:
+    If a valid project is loaded, hide the "Create New Project" button and show the project structure.
+    If no valid project is loaded, show the "Create New Project" button.
+6. Handling Multiple Projects (Optional Future Consideration):
+    Functionality: Manage multiple project folders in a multi-root workspace.
+    Steps:
+    If VS Code is in a multi-root workspace, allow the Project Manager to handle multiple projects.
+    Display a different tree structure or project configuration for each root folder.
+7. Persistent State and Settings:
+    Functionality: Ensure that the project state (such as the project configuration) is persistent between VS Code sessions.
+    Steps:
+    Store persistent settings (e.g., .vscode/fpgaproj) that can be reloaded when the workspace is reopened.
+    Ensure that the Project Manager UI and internal state are synchronized with the stored project data.
+8. Error Handling and Validation:
+    Functionality: Validate and handle errors gracefully.
+    Steps:
+    If the project configuration file is corrupted or missing required fields, provide clear error messages.
+    Prevent invalid project configurations from being loaded.
+9. Support for Different Project Types (Optional Future Consideration):
+    Functionality: Handle different types of projects with different configurations.
+    Steps:
+    Provide support for different project types (e.g., FPGA, software, etc.).
+    Adjust the project structure and available options based on the project type.
+    Key Functional Flow:
+    Project Folder Detection:
+    IF .vscode/fpgaproj exists → Load the project structure.
+    ELSE → Show the "Create New Project" button.
+    Project Creation:
+    User clicks "Create New Project" → Wizard starts → Save project info in .vscode/fpgaproj.
+    Project Management:
+    Load and display project structure from .vscode/fpgaproj.
+    Allow interaction with the project files and settings.
+    UI Behavior:
+    IF a project is detected → Show project structure.
+    ELSE → Show "Create New Project" button.
