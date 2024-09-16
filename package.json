@@ -1,10 +1,10 @@
 {
-  "name": "test",
-  "displayName": "test",
+  "name": "adi-efpga-plugin",
+  "displayName": "adi-efpga-plugin",
   "description": "",
   "version": "0.0.1",
   "engines": {
-    "vscode": "^1.93.0"
+    "vscode": "^1.95.0"
   },
   "categories": [
     "Other"
@@ -12,32 +12,10 @@
   "activationEvents": [],
   "main": "./out/extension.js",
   "contributes": {
-
-    "viewsContainers": {
-      "activitybar": [
-        {
-          "id": "projectManager",
-          "title": "Project Manager",
-          "icon": "resources/test_icon.svg"
-        }
-      ]
-    },
-    "views": {
-      "projectManager": [
-        {
-          "id": "projectView",
-          "name": "Project"
-        },
-        {
-          "id": "testView",
-          "name": "Test"
-        }
-      ]
-    },
     "commands": [
       {
-        "command": "projectManager.openCreateProjectWebview",
-        "title": "Create New Project"
+        "command": "adi-efpga-plugin.helloWorld",
+        "title": "Hello World"
       }
     ]
   },
@@ -50,7 +28,7 @@
     "test": "vscode-test"
   },
   "devDependencies": {
-    "@types/vscode": "^1.93.0",
+    "@types/vscode": "^1.95.0",
     "@types/mocha": "^10.0.7",
     "@types/node": "20.x",
     "@typescript-eslint/eslint-plugin": "^8.3.0",

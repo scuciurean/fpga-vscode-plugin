@@ -4,20 +4,6 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-		  "label": "npm: compile",
-		  "type": "npm",
-		  "script": "compile",
-		  "problemMatcher": [],
-		  "detail": "Run the compile script"
-		},
-
-		{
-			"label": "npm: build",
-			"type": "npm",
-			"script": "build",  // This runs the "build" script from package.json (which triggers webpack)
-			"problemMatcher": []
-		},
-		{
 			"type": "npm",
 			"script": "watch",
 			"problemMatcher": "$tsc-watch",
@@ -29,25 +15,6 @@
 				"kind": "build",
 				"isDefault": true
 			}
-		},
-		{
-			"type": "npm",
-			"script": "watch-tests",
-			"problemMatcher": "$tsc-watch",
-			"isBackground": true,
-			"presentation": {
-				"reveal": "never",
-				"group": "watchers"
-			},
-			"group": "build"
-		},
-		{
-			"label": "tasks: watch-tests",
-			"dependsOn": [
-				"npm: watch",
-				"npm: watch-tests"
-			],
-			"problemMatcher": []
 		}
 	]
 }
