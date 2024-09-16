@@ -82,23 +82,21 @@ export class ProjectManager implements vscode.TreeDataProvider<ProjectItem> {
         const extensions = ['.v', '.vhd', '.sv'];
         let files: string[] = [];
         const entries = fs.readdirSync(dir, { withFileTypes: true });
-
+    
         for (const entry of entries) {
             const fullPath = path.join(dir, entry.name);
-
-            // Skip directories that are in the excludeFolders list
+    
             if (entry.isDirectory()) {
-                const relativeDir = path.relative(vscode.workspace.workspaceFolders![0].uri.fsPath, fullPath);
-
-                // Exclude directories in the excludeFolders list
-                if (!this.excludeFolders.includes(relativeDir)) {
+                // Exclude directories that are in the excludeFolders list
+                const relativeDir = path.relative(vscode.workspace.workspaceFolders![0].uri.fsPath, fullPath).replace(/\\/g, '/');
+                if (!this.excludeFolders.some(folder => relativeDir.startsWith(folder))) {
                     files = files.concat(this.findSourceFiles(fullPath));  // Recursively search subfolders
                 }
             } else if (extensions.includes(path.extname(fullPath).toLowerCase())) {
                 files.push(fullPath);  // Add file to the list
             }
         }
-
+    
         return files;
     }
     
@@ -137,6 +135,15 @@ export class ProjectManager implements vscode.TreeDataProvider<ProjectItem> {
      */
     private handleFileChange(uri: vscode.Uri, changeType: 'create' | 'delete' | 'update') {
         const filePath = uri.fsPath;
+        const workspaceRoot = vscode.workspace.workspaceFolders![0].uri.fsPath;
+        const relativeFilePath = path.relative(workspaceRoot, filePath).replace(/\\/g, '/');
+
+        // Determine if the file is within an excluded folder
+        const isExcluded = this.excludeFolders.some(folder => relativeFilePath.startsWith(folder));
+
+        if (isExcluded) {
+            return;  // Ignore changes in excluded folders
+        }
 
         if (changeType === 'create') {
             if (!this.sourceFiles.includes(filePath)) {

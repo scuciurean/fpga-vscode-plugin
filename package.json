@@ -105,6 +105,10 @@
           "name": "Constraints"
         },
         {
+          "id": "hierarchicalViewer",
+          "name": "Block View"
+        },
+        {
           "id": "runView",
           "name": "Runs"
         }

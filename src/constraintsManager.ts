@@ -7,10 +7,10 @@ import * as path from 'path';
  */
 class ConstraintItem extends vscode.TreeItem {
     constructor(
-        public readonly label: string,
+        public readonly fullPath: string,
         public readonly command?: vscode.Command
     ) {
-        super(label, vscode.TreeItemCollapsibleState.None);
+        super(path.basename(fullPath), vscode.TreeItemCollapsibleState.None);
         this.contextValue = 'constraintItem';
         this.iconPath = new vscode.ThemeIcon('symbol-parameter');
         if (command) {
@@ -52,10 +52,11 @@ export class ConstraintsProvider implements vscode.TreeDataProvider<ConstraintIt
         const items: ConstraintItem[] = [];
 
         // Add an "Add Constraint" button at the top with a + icon
-        const addConstraintItem = new ConstraintItem('Add Constraint', {
+        const addConstraintItem = new ConstraintItem('', {
             command: 'constraints.addConstraint',
             title: 'Add Constraint'
         });
+        addConstraintItem.label = 'Add Constraint'; // Explicitly set the label for the add button
         addConstraintItem.iconPath = new vscode.ThemeIcon('add');  // Use the + icon
         items.push(addConstraintItem);  // Add this as the first item
 
@@ -143,19 +144,19 @@ export class ConstraintsProvider implements vscode.TreeDataProvider<ConstraintIt
         });
 
         if (constraintFile && constraintFile[0]) {
-            const constraintPath = path.relative(vscode.workspace.workspaceFolders![0].uri.fsPath, constraintFile[0].fsPath);
-            const extension = path.extname(constraintFile[0].fsPath);
+            const constraintPath = constraintFile[0].fsPath;
+            const extension = path.extname(constraintPath);
 
             // Validate the file extension before adding
             if (this.supportedExtensions.includes(extension.toLowerCase())) {
                 // Check if the constraint already exists
-                if (!this.constraints.includes(constraintFile[0].fsPath)) {
-                    this.constraints.push(constraintFile[0].fsPath);  // Use full path in .prjinfo
+                if (!this.constraints.includes(constraintPath)) {
+                    this.constraints.push(constraintPath);  // Use full path in .prjinfo
                     this.saveConstraints();  // Save updated constraints to .prjinfo
                     this.refresh();
-                    vscode.window.showInformationMessage(`Constraint '${constraintPath}' added.`);
+                    vscode.window.showInformationMessage(`Constraint '${path.basename(constraintPath)}' added.`);
                 } else {
-                    vscode.window.showWarningMessage(`Constraint '${constraintPath}' already exists.`);
+                    vscode.window.showWarningMessage(`Constraint '${path.basename(constraintPath)}' already exists.`);
                 }
             } else {
                 vscode.window.showErrorMessage(`Unsupported constraint file extension: ${extension}. Allowed extensions are: ${this.supportedExtensions.join(', ')}`);
@@ -167,14 +168,14 @@ export class ConstraintsProvider implements vscode.TreeDataProvider<ConstraintIt
      * Removes a constraint and updates the .prjinfo file.
      */
     removeConstraint(constraint: ConstraintItem) {
-        const index = this.constraints.indexOf(constraint.label);
+        const index = this.constraints.indexOf(constraint.fullPath);
         if (index > -1) {
             this.constraints.splice(index, 1);
             this.saveConstraints();  // Save updated constraints to .prjinfo
             this.refresh();
-            vscode.window.showInformationMessage(`Constraint '${constraint}' has been removed.`);
+            vscode.window.showInformationMessage(`Constraint '${path.basename(constraint.fullPath)}' has been removed.`);
         } else {
-            vscode.window.showErrorMessage(`Constraint '${constraint}' not found.`);
+            vscode.window.showErrorMessage(`Constraint '${constraint.fullPath}' not found.`);
         }
     }
 
@@ -194,8 +195,7 @@ export class ConstraintsProvider implements vscode.TreeDataProvider<ConstraintIt
                 this.loadConstraints();
             }),
             vscode.commands.registerCommand('constraints.openConstraint', async (constraint: string) => {
-                const workspaceFolder = vscode.workspace.workspaceFolders![0];
-                const constraintUri = vscode.Uri.joinPath(workspaceFolder.uri, constraint);
+                const constraintUri = vscode.Uri.file(constraint);  // Use full path
                 const document = await vscode.workspace.openTextDocument(constraintUri);
                 await vscode.window.showTextDocument(document);
             })
