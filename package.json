@@ -1,63 +1,206 @@
 {
-  "name": "test",
-  "displayName": "test",
-  "description": "",
-  "version": "0.0.1",
+  "name": "project-manager",
+  "displayName": "Project Manager",
+  "description": "A VSCode extension to manage projects with File Browser and Constraints views.",
+  "version": "1.0.0",
+  "publisher": "your-publisher-name",
   "engines": {
-    "vscode": "^1.93.0"
+    "vscode": "^1.60.0"
   },
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+  ],
   "main": "./out/extension.js",
   "contributes": {
-
+    "commands": [
+      {
+        "command": "projectManager.createProject",
+        "title": "Create Project"
+      },
+      {
+        "command": "projectManager.openProject",
+        "title": "Open Project"
+      }, 
+      {
+        "command": "projectManager.refreshProject",
+        "icon": "$(refresh)",
+        "title": "Refresh Project",
+        "category": "Project Manager"
+      },
+      {
+        "command": "fileBrowser.newFile",
+        "title": "New File"
+      },
+      {
+        "command": "fileBrowser.newFolder",
+        "title": "New Folder"
+      },
+      {
+        "command": "fileBrowser.delete",
+        "title": "Delete"
+      },
+      {
+        "command": "fileBrowser.rename",
+        "title": "Rename"
+      },
+      {
+        "command": "fileBrowser.copy",
+        "title": "Copy"
+      },
+      {
+        "command": "fileBrowser.paste",
+        "title": "Paste"
+      },
+      {
+        "command": "fileBrowser.refresh",
+        "title": "Refresh"
+      },
+      {
+        "command": "fileBrowser.revealInExplorer",
+        "title": "Reveal in Explorer"
+      },
+      {
+        "command": "constraints.addConstraint",
+        "title": "Add Constraint",
+        "icon": "$(add)"
+      },
+      {
+        "command": "constraints.openConstraint",
+        "title": "Open Constraint"
+      },
+      {
+        "command": "constraints.removeConstraint",
+        "title": "Remove Constraint"
+      },
+      {
+        "command": "constraints.refreshConstraints",
+        "title": "Refresh Constraints",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "runView.playCommand",
+        "title": "Run Project",
+        "icon": "$(debug-start)"
+      }
+    ],
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "projectManager",
+          "id": "projectManagerViewContainer",
           "title": "Project Manager",
-          "icon": "resources/test_icon.svg"
+          "icon": "resources/project_manager.svg"
         }
       ]
     },
     "views": {
-      "projectManager": [
+      "projectManagerViewContainer": [
         {
-          "id": "projectView",
-          "name": "Project"
+          "id": "fileBrowserView",
+          "name": "Project Browser"
         },
         {
-          "id": "testView",
-          "name": "Test"
+          "id": "constraintsView",
+          "name": "Constraints"
+        },
+        {
+          "id": "runView",
+          "name": "Runs"
         }
       ]
     },
-    "commands": [
-      {
-        "command": "projectManager.openCreateProjectWebview",
-        "title": "Create New Project"
-      }
-    ]
+    "menus": {
+      "view/title": [
+        {
+          "command": "projectManager.refreshProject",
+          "when": "view == fileBrowserView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "constraints.addConstraint",
+          "when": "view == constraintsView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "constraints.refreshConstraints",
+          "when": "view == constraintsView",
+          "group": "navigation@1"
+        },
+        {
+          "command": "runView.playCommand",
+          "when": "view == runView",
+          "group": "navigation"
+        }
+      ],
+      "view/title/context": [
+        {
+          "command": "constraints.addConstraint",
+          "when": "view == constraintsView",
+          "group": "navigation@1"
+        }
+      ],
+      "view/context": [
+      ],
+      "view/item/context": [
+        {
+          "command": "fileBrowser.newFile",
+          "when": "view == fileBrowserView && (viewItem == 'fileBrowserFolder' || viewItem == 'fileBrowserRoot')",
+          "group": "navigation@1"
+        },
+        {
+          "command": "fileBrowser.newFolder",
+          "when": "view == fileBrowserView && (viewItem == 'fileBrowserFolder' || viewItem == 'fileBrowserRoot')",
+          "group": "navigation@2"
+        },
+        {
+          "command": "fileBrowser.rename",
+          "when": "view == fileBrowserView && (viewItem == 'fileBrowserFile' || viewItem == 'fileBrowserFolder' || viewItem == 'fileBrowserRoot')",
+          "group": "navigation@3"
+        },
+        {
+          "command": "fileBrowser.delete",
+          "when": "view == fileBrowserView && (viewItem == 'fileBrowserFile' || viewItem == 'fileBrowserFolder' || viewItem == 'fileBrowserRoot')",
+          "group": "navigation@4"
+        },
+        {
+          "command": "fileBrowser.copy",
+          "when": "view == fileBrowserView && (viewItem == 'fileBrowserFile' || viewItem == 'fileBrowserFolder' || viewItem == 'fileBrowserRoot')",
+          "group": "navigation@5"
+        },
+        {
+          "command": "fileBrowser.paste",
+          "when": "view == fileBrowserView && (viewItem == 'fileBrowserFolder' || viewItem == 'fileBrowserRoot')",
+          "group": "navigation@6"
+        },
+        {
+          "command": "fileBrowser.revealInExplorer",
+          "when": "view == fileBrowserView && (viewItem == 'fileBrowserFile' || viewItem == 'fileBrowserFolder' || viewItem == 'fileBrowserRoot')",
+          "group": "navigation@7"
+        },
+        {
+          "command": "constraints.addConstraint",
+          "when": "view == constraintsView && viewItem == 'constraintsPlaceholder'",
+          "group": "navigation@1"
+        },
+        {
+          "command": "constraints.removeConstraint",
+          "when": "view == constraintsView && viewItem == 'constraintItem'",
+          "group": "navigation@1"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src",
-    "test": "vscode-test"
+    "postinstall": "node ./node_modules/vscode/bin/install"
   },
   "devDependencies": {
-    "@types/vscode": "^1.93.0",
-    "@types/mocha": "^10.0.7",
-    "@types/node": "20.x",
-    "@typescript-eslint/eslint-plugin": "^8.3.0",
-    "@typescript-eslint/parser": "^8.3.0",
-    "eslint": "^9.9.1",
-    "typescript": "^5.5.4",
-    "@vscode/test-cli": "^0.0.10",
-    "@vscode/test-electron": "^2.4.1"
+    "typescript": "^4.4.3",
+    "vscode": "^1.1.37",
+    "@types/node": "^14.14.37",
+    "@types/vscode": "^1.60.0"
   }
 }
