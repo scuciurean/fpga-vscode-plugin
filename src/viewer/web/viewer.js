@@ -2,11 +2,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const canvas = document.getElementById('canvas');
     const gridSize = 100; // Size of the grid cells
     const blockWidth = 250; // Width of blocks
-    const blockHeight = 150; // Height of blocks
+    const portHeight = 30; // Height of each port
     const portMargin = 10; // Margin inside the port area for anchor points
     const horizontalLineExtension = 4; // Extension length for the horizontal segment
     const horizontalLineLength = 50; // Minimum length of the horizontal segment for wire connections
-    const verticalOffset = 10; // Vertical offset to prevent overlap
     let modulePositions = {}; // To store module positions
     let blocks = []; // To store blocks for overlap checking
     let draggingBlock = null; // To store the block currently being dragged
@@ -77,8 +76,8 @@ document.addEventListener('DOMContentLoaded', () => {
             return (
                 x < bx + blockWidth &&
                 x + blockWidth > bx &&
-                y < by + blockHeight &&
-                y + blockHeight > by
+                y < by + block.height &&
+                y + block.height > by
             );
         });
     }
@@ -92,7 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (x + blockWidth > canvas.clientWidth) {
                 x = 0;
                 y += gridSize;
-                if (y + blockHeight > canvas.clientHeight) {
+                if (y + block.height > canvas.clientHeight) {
                     y = 0; // Wrap around if necessary
                 }
             }
@@ -121,7 +120,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const blockRect = block.getBoundingClientRect();
         const portRect = portElement.getBoundingClientRect();
         const relativeX = parseFloat(block.style.left) + blockWidth; // Margin inside the block
-        const relativeY = parseFloat(block.style.top) + portElement.offsetTop  + portMargin + (portElement.offsetHeight / 2); // Center of the port vertically
+        const relativeY = parseFloat(block.style.top) + portElement.offsetTop + portMargin + (portElement.offsetHeight / 2); // Center of the port vertically
 
         return { x: relativeX, y: relativeY };
     }
@@ -217,6 +216,9 @@ document.addEventListener('DOMContentLoaded', () => {
         modulePositions = arrangeModules(modules);
 
         modules.forEach(module => {
+            // Calculate block height based on number of ports
+            const blockHeight = Math.max(portHeight * module.ports.length + portMargin * (module.ports.length - 1), 150); // Minimum height of 150
+
             // Initial position for the module
             const { x, y } = modulePositions[module.instance_name];
 
@@ -225,6 +227,8 @@ document.addEventListener('DOMContentLoaded', () => {
             block.classList.add('module-block');
             block.style.left = `${x}px`;
             block.style.top = `${y}px`;
+            block.style.width = `${blockWidth}px`;
+            block.style.height = `${blockHeight}px`;
             block.dataset.module = module.instance_name;
 
             // Create ports, assuming ports are in the format 'port_name(wire_name)'
@@ -242,7 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
 
             canvas.appendChild(block);
-            blocks.push({ x, y, element: block }); // Add block to the list of blocks
+            blocks.push({ x, y, element: block, height: blockHeight }); // Add block to the list of blocks
 
             // Make blocks draggable and snap to grid
             block.addEventListener('mousedown', (e) => {

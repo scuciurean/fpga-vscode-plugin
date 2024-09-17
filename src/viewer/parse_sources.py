@@ -51,14 +51,24 @@ def extract_modules(filepath):
 
     # Regex to capture module definitions
     # This regex captures from 'module [name](' to 'endmodule'
-    module_regex = re.compile(r'\bmodule\s+(\w+)\s*\((.*?)\);(.*?)endmodule', re.DOTALL)
-    matches = module_regex.findall(content)
+    # module_regex = re.compile(r'\bmodule\s+(\w+)\s*\((.*?)\);(.*?)endmodule', re.DOTALL)
+    module_regex = re.compile(r'\bmodule\s+(\w+)(?:\s*#\s*)?\s*\((.*?)([\s\S]*?)endmodule', re.DOTALL)
+    param_regex = re.compile(r'\bmodule\s+(\w+)(?:)\s*#?\s*?\s*\(.*?\(*([\s\S]*?)\)[\s\S]*?\(([\s\S]*?)\);([\s\S]*?)endmodule',re.DOTALL)
+    no_param_regex = re.compile(r'\bmodule\s+(\w+)(?:)\s*#?\s*?\s*\(.*?[\s\S]*?()([\s\S]*?)\);([\s\S]*?)endmodule', re.DOTALL)
+   
+    target  = re.search(r'\bmodule\s+(\w+(?:\s*#?\s*?\s*))\(', content)
+    if target:
+        if '#' in target.group(0):
+            matches = param_regex.findall(content)      
+        else :
+            matches = no_param_regex.findall(content)      
 
-    for match in matches:
-        module_name = match[0]
-        module_ports = match[1]  # Capture the ports section
-        module_content = match[2]
-        modules[module_name] = (module_ports, module_content)  # Store as tuple
+        for match in matches:
+            module_name = match[0]
+            module_parameters = match[1]
+            module_ports = match[2]  # Capture the ports section
+            module_content = match[3]
+            modules[module_name] = (module_ports, module_content)  # Store as tuple
 
     return modules
 
@@ -76,23 +86,32 @@ def extract_instantiated_modules(module_content, all_module_names, module_defini
     for submodule in all_module_names:
         # Regex to find instantiations: [submodule_name] [instance_name] (
         pattern = r'\b' + re.escape(submodule) + r'\s+(\w+)\s*\((.*?)\);'
-        matches = re.findall(pattern, module_content.replace('\n', ''))
+        pattern_param =  re.compile(r'\b' + re.escape(submodule) + r'\s*?#?\s*?\(([\s\S]*?)\)\s*?(\w+)\s*?\(([\s\S]*?)\);', re.DOTALL)
+        pattern_no_param =  re.compile(r'\b' + re.escape(submodule) + r'()\s*?(\w+)\s*?\(([\s\S]*?)\);', re.DOTALL)
+        
+        target = re.search(r'\b' + re.escape(submodule) + r'[\s\S]*?\(', module_content)
+        if target:
+            if '#' in target.group(0):
+                matches = pattern_param.findall(module_content)      
+            else :
+                matches = pattern_no_param.findall(module_content)      
 
-        # If any matches are found, recursively add submodules to the hierarchy
-        for match in matches:
-            instance_name = match[0]
-            submodule_ports = match[1]
-            submodule_content = module_definitions[submodule][1]  # Get the content of the submodule
             
-            # Recursively find submodules inside the current submodule
-            nested_submodules = extract_instantiated_modules(submodule_content, all_module_names, module_definitions)
-            
-            instantiated_submodules.append({
-                'instance_name': instance_name,
-                'module_name': submodule,
-                'ports': sanitize_ports(submodule_ports),
-                'submodules': nested_submodules  # Add nested submodules recursively
-            })
+            for match in matches:
+                parameters = match[0]
+                instance_name = match[1]
+                submodule_ports = match[2]
+                submodule_content = module_definitions[submodule][1]  # Get the content of the submodule
+                
+                # Recursively find submodules inside the current submodule
+                nested_submodules = extract_instantiated_modules(submodule_content, all_module_names, module_definitions)
+                
+                instantiated_submodules.append({
+                    'instance_name': instance_name,
+                    'module_name': submodule,
+                    'ports': sanitize_ports(submodule_ports),
+                    'submodules': nested_submodules  # Add nested submodules recursively
+                })
 
     return instantiated_submodules
 

@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+import { exec } from 'child_process';
 
 export class ExecutionManager implements vscode.TreeDataProvider<ExecutionItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<ExecutionItem | undefined | void> = new vscode.EventEmitter<ExecutionItem | undefined | void>();
@@ -67,21 +68,30 @@ export class ExecutionManager implements vscode.TreeDataProvider<ExecutionItem> 
         // Extract necessary data from the .prjinfo file
         const constraints = prjInfo.constraints || [];
         const sources = prjInfo.sourceFiles || [];
+        const relativeSources = sources.map((source : string) => path.relative(workspaceFolder.uri.fsPath, source));
+        const relativeConstraints = constraints.map((constraint : string) => path.relative(workspaceFolder.uri.fsPath, constraint));
+
 
         // Create Makefile content based on the parsed data
         const makefileContent = `
 # Automatically generated Makefile
-# Sources: ${sources.join(' ')}
-# Constraints: ${constraints.join(' ')}
 
-all: main
+TOP_MODULE = top
+SRCS = ${relativeSources.join(" \\\n\t")}
+PCF = ${relativeConstraints}
+SDC = 
 
-main: ${sources.join(' ')}
-\t@echo "Building project with sources: ${sources.join(' ')}"
+QL_FLAGS= \\
+	-d ql-eos-s3 \\
+	-P PU64 \\
+	-t top \\
+	-v $(SRCS) \\
+	-p $(PCF)
 
-clean:
-\t@echo "Cleaning up..."
-\t@rm -f main
+#    -s $(SDC)
+
+all:
+	ql_symbiflow -compile $(QL_FLAGS) -dump binary
         `;
 
         const makefilePath = path.join(workspaceFolder.uri.fsPath, 'Makefile');
@@ -97,4 +107,28 @@ class ExecutionItem extends vscode.TreeItem {
     ) {
         super(label, collapsibleState);
     }
+}
+
+export function runProject() {
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0].uri.fsPath;
+
+    if (!workspaceFolder) {
+        vscode.window.showErrorMessage('No workspace folder found.');
+        return;
+    }
+
+    const terminal = vscode.window.createTerminal('Build Project');
+    terminal.show();
+
+    // Define the command to set up the environment and run make
+    const command = `
+        export F4PGA_INSTALL_DIR=/opt/f4pga;
+        export FPGA_FAM=eos-s3;
+        source "$F4PGA_INSTALL_DIR/$FPGA_FAM/conda/etc/profile.d/conda.sh";
+        conda activate eos-s3;
+        make
+    `;
+
+    // Execute the command in the terminal
+    terminal.sendText(command);
 }

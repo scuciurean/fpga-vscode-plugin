@@ -60,7 +60,7 @@ export class HierarchicalViewer implements vscode.TreeDataProvider<TreeItem> {
                 console.log("Module Hierarchy Parsed:", result);
 
                 // Set the first key as the main module (e.g., `helloworldfpga`)
-                this.mainModule = Object.keys(result)[0];
+                this.mainModule = 'top';//Object.keys(result)[0];
                 this.moduleHierarchy = result;
 
                 // Refresh the tree view to display the new module hierarchy

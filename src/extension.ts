@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { ProjectManager } from './projectManager';
 import { FileBrowserProvider } from './fileBrowser';
 import { ConstraintsProvider } from './constraintsManager';
-import { ExecutionManager } from './executionManager';
+import { ExecutionManager, runProject } from './executionManager';
 import { HierarchicalViewer } from './hierarchicalViewer';
 
 /**
@@ -60,11 +60,6 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window.createTreeView('runView', {
         treeDataProvider: executionManager
     });
-}
-
-function runProject() {
-    // Add your logic to run or build the project here
-    vscode.window.showInformationMessage('Project is now running.');
 }
 
 /**
