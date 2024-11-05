@@ -14,18 +14,133 @@
   "contributes": {
     "commands": [
       {
-        "command": "adi-efpga-plugin.helloWorld",
-        "title": "Hello World"
+        "command": "projectManager.refreshProjects",
+        "icon": "$(refresh)",
+        "title": "Refresh Project",
+        "category": "Project Manager"
+      },
+      {
+        "command": "projectManager.enableProject",
+        "title": "Enable Project"
+      },
+      {
+        "command": "projectManager.disableProject",
+        "title": "Disable Project"
+      },
+      {
+        "command": "fileBrowser.newFile",
+        "title": "New File"
+      },
+      {
+        "command": "fileBrowser.newFolder",
+        "title": "New Folder"
+      },
+      {
+        "command": "fileBrowser.delete",
+        "title": "Delete"
+      },
+      {
+        "command": "fileBrowser.rename",
+        "title": "Rename"
+      },
+      {
+        "command": "fileBrowser.copy",
+        "title": "Copy"
+      },
+      {
+        "command": "fileBrowser.paste",
+        "title": "Paste"
+      },
+      {
+        "command": "fileBrowser.refresh",
+        "title": "Refresh"
+      },
+      {
+        "command": "fileBrowser.revealInExplorer",
+        "title": "Reveal in Explorer"
       }
-    ]
+    ],
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "efpgaViewContainer",
+          "title": "Project Manager",
+          "icon": "resources/plugin.svg"
+        }
+      ]
+    },
+    "views": {
+      "efpgaViewContainer": [
+        {
+          "id": "projectBrowserView",
+          "name": "Project Browser"
+        }
+      ]
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "projectManager.refreshProjects",
+          "when": "view == projectBrowserView",
+          "group": "navigation@1"
+        }
+      ],
+      "view/context": [
+      ],
+      "view/item/context": [
+        {
+          "command": "projectManager.enableProject",
+          "when": "view == projectBrowserView && viewItem == inactiveProject",
+          "group": "navigation"
+        },
+        {
+          "command": "projectManager.disableProject",
+          "when": "view == projectBrowserView && viewItem == activeProject",
+          "group": "navigation"
+        },
+        {
+          "command": "fileBrowser.newFile",
+          "when": "view == projectBrowserView && (viewItem == 'fileBrowserFolder' || viewItem == 'activeProject')",
+          "group": "navigation@1"
+        },
+        {
+          "command": "fileBrowser.newFolder",
+          "when": "view == projectBrowserView && (viewItem == 'fileBrowserFolder' || viewItem == 'activeProject')",
+          "group": "navigation@2"
+        },
+        {
+          "command": "fileBrowser.rename",
+          "when": "view == projectBrowserView && (viewItem == 'fileBrowserFile' || viewItem == 'fileBrowserFolder' || viewItem == 'fileBrowserRoot')",
+          "group": "navigation@3"
+        },
+        {
+          "command": "fileBrowser.delete",
+          "when": "view == projectBrowserView && (viewItem == 'fileBrowserFile' || viewItem == 'fileBrowserFolder' || viewItem == 'fileBrowserRoot')",
+          "group": "navigation@4"
+        },
+        {
+          "command": "fileBrowser.copy",
+          "when": "view == projectBrowserView && (viewItem == 'fileBrowserFile' || viewItem == 'fileBrowserFolder' || viewItem == 'fileBrowserRoot')",
+          "group": "navigation@5"
+        },
+        {
+          "command": "fileBrowser.paste",
+          "when": "view == projectBrowserView && (viewItem == 'fileBrowserFolder' || viewItem == 'activeProject')",
+          "group": "navigation@6"
+        },
+        {
+          "command": "fileBrowser.revealInExplorer",
+          "when": "view == projectBrowserView && (viewItem == 'fileBrowserFile' || viewItem == 'fileBrowserFolder' || viewItem == 'activeProject')",
+          "group": "navigation@7"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "pretest": "npm run compile && npm run lint",
-    "lint": "eslint src",
-    "test": "vscode-test"
+    "postinstall": "node ./node_modules/vscode/bin/install"
   },
   "devDependencies": {
     "@types/vscode": "^1.95.0",
@@ -37,5 +152,9 @@
     "typescript": "^5.5.4",
     "@vscode/test-cli": "^0.0.10",
     "@vscode/test-electron": "^2.4.1"
+  },
+  "dependencies": {
+    "fs": "0.0.1-security",
+    "path": "^0.12.7"
   }
 }
