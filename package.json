@@ -58,6 +58,14 @@
       {
         "command": "fileBrowser.revealInExplorer",
         "title": "Reveal in Explorer"
+      },
+      {
+        "command": "moduleListProvider.openFileAtLine",
+        "title": "Open File at Line"
+      },
+      {
+        "command": "moduleListProvider.setAsTop",
+        "title": "Set as TOP module"
       }
     ],
     "viewsContainers": {
@@ -74,6 +82,14 @@
         {
           "id": "projectBrowserView",
           "name": "Project Browser"
+        },
+        {
+          "id": "moduleView",
+          "name": "Modules"
+        },
+        {
+          "id": "hierarchicalView",
+          "name": "Block View"
         }
       ]
     },
@@ -132,6 +148,11 @@
           "command": "fileBrowser.revealInExplorer",
           "when": "view == projectBrowserView && (viewItem == 'fileBrowserFile' || viewItem == 'fileBrowserFolder' || viewItem == 'activeProject')",
           "group": "navigation@7"
+        },
+        {
+          "command": "moduleListProvider.setAsTop",
+          "when": "view == moduleView",
+          "group": "navigation"
         }
       ]
     }

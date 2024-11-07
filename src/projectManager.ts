@@ -2,16 +2,17 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
     
-interface ProjectInfo {
+export interface ProjectInfo {
     projectRoot?: string;
     sourceFiles?: string[];
     constraints?: string[];
+    topModule?: string;
 }
 
 export interface ProjectConfig {
     name: string;
-    projectInfo: string;
-    projectRoot?: string;
+    projectInfoPath: string;
+    projectRoot: string;
     active: boolean;
     info: ProjectInfo;
 }
@@ -34,12 +35,16 @@ export class ProjectItem extends vscode.TreeItem {
 }
 
 export class ProjectManager implements vscode.TreeDataProvider<ProjectItem> {
+    private static _instance: ProjectManager | null = null;
+    private currentActiveProject: ProjectConfig | null = null;
     public workspaceConfig: WorkspaceConfig | null = null;
     public excludeFolders: string[] = ['build'];
     private workspaceExtension: string = '.ews';
     private workspaceConfigPath: string = '';
     private sourceFiles: string[] = [];
     private watcher: vscode.FileSystemWatcher | undefined;
+    private _onDidUpdateProject: vscode.EventEmitter<void> = new vscode.EventEmitter<void>();
+    public readonly onDidUpdateProject: vscode.Event<void> = this._onDidUpdateProject.event;
     private _onDidChangeTreeData: vscode.EventEmitter<ProjectItem | undefined | void> = new vscode.EventEmitter<ProjectItem | undefined | void>();
     readonly onDidChangeTreeData: vscode.Event<ProjectItem | undefined | void> = this._onDidChangeTreeData.event;
 
@@ -54,6 +59,24 @@ export class ProjectManager implements vscode.TreeDataProvider<ProjectItem> {
     
         // Dispose of the provider when the extension is deactivated
         context.subscriptions.push(fileBrowserProvider);
+    }
+    
+    public static get instance(): ProjectManager {
+        if (!ProjectManager._instance) {
+            throw new Error("ProjectManager not initialized. Call ProjectManager.initialize(context) first.");
+        }
+        return ProjectManager._instance;
+    }
+
+    public static initialize(context: vscode.ExtensionContext): void {
+        if (!ProjectManager._instance) {
+            ProjectManager._instance = new ProjectManager(context);
+        }
+    }
+
+
+    public getActiveProject(): ProjectConfig | null {
+        return this.currentActiveProject;
     }
 
     /**
@@ -107,12 +130,12 @@ export class ProjectManager implements vscode.TreeDataProvider<ProjectItem> {
      * Load a project from the workspace configuration.
      */
     private loadProject(project: ProjectConfig) {
-        if (fs.existsSync(project.projectInfo)) {
-            const content = fs.readFileSync(project.projectInfo, 'utf-8');
+        if (fs.existsSync(project.projectInfoPath)) {
+            const content = fs.readFileSync(project.projectInfoPath, 'utf-8');
             project.info = JSON.parse(content);
             vscode.window.showInformationMessage(`Project loaded: ${project.name}`);
         } else {
-            vscode.window.showWarningMessage(`Project file not found: ${project.projectInfo}`);
+            vscode.window.showWarningMessage(`Project file not found: ${project.projectInfoPath}`);
         }
     }
 
@@ -126,6 +149,11 @@ export class ProjectManager implements vscode.TreeDataProvider<ProjectItem> {
         }
     
         this.workspaceConfig.projects.forEach(project => this.loadProject(project));
+        this.workspaceConfig.projects.forEach((project: any) => {
+            if (project.active) {
+                this.currentActiveProject = project;
+            }
+        });
     }
 
     /**
@@ -178,16 +206,27 @@ export class ProjectManager implements vscode.TreeDataProvider<ProjectItem> {
             vscode.window.showErrorMessage('Workspace configuration not loaded.');
             return;
         }
-
+    
         const project = this.workspaceConfig.projects.find(p => p.name === item.label);
         if (project) {
             project.active = state;
+    
+            if (state) {
+                // Disable all other projects when enabling the selected one
+                this.workspaceConfig.projects.forEach(p => {
+                    if (p.name !== project.name) {
+                        p.active = false;
+                    }
+                });
+                this.currentActiveProject = project;
+                this._onDidUpdateProject.fire();
+            }
+    
             vscode.window.showInformationMessage(`Project ${project.name} has been ${state ? 'enabled' : 'disabled'}.`);
             this.saveWorkspaceConfig();
             this.refresh();
         }
     }
-
     
     /**
      * Handles file changes (create, delete, update) and updates the .prjinfo file.
@@ -229,7 +268,7 @@ export class ProjectManager implements vscode.TreeDataProvider<ProjectItem> {
                         vscode.window.showInformationMessage(`Removed file: ${path.basename(filePath)}`);
                     }
                 }
-                fs.writeFileSync(selectedProject.projectInfo, JSON.stringify(selectedProject.info, null, 2), 'utf-8');
+                fs.writeFileSync(selectedProject.projectInfoPath, JSON.stringify(selectedProject.info, null, 2), 'utf-8');
                 vscode.window.showInformationMessage(`Project '${selectedProject.name}' updated with ${selectedProject.info.sourceFiles?.length || 0} source files.`);
             }
         }
@@ -377,7 +416,7 @@ export class FileBrowserProvider implements vscode.TreeDataProvider<FileBrowserI
     
             if (workspaceConfig) {
                 workspaceConfig.projects.forEach(project => {
-                    const content = fs.readFileSync(project.projectInfo, 'utf-8');
+                    const content = fs.readFileSync(project.projectInfoPath, 'utf-8');
                     const projectConfig = JSON.parse(content) as ProjectConfig;
                     project.projectRoot = projectConfig.projectRoot || workspaceConfig.workspaceRoot;
     
