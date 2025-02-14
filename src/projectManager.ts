@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
-    
+
 export interface ProjectInfo {
     projectRoot?: string;
     sourceFiles?: string[];
@@ -52,15 +52,15 @@ export class ProjectManager implements vscode.TreeDataProvider<ProjectItem> {
         this.loadWorkspaceConfig();
         this.initializeFileWatcher();
         this.registerCommands();
-        
+
         // Initialize the File Browser Provider
         const fileBrowserProvider = new FileBrowserProvider(context, this);
         vscode.window.registerTreeDataProvider('projectBrowserView', fileBrowserProvider);
-    
+
         // Dispose of the provider when the extension is deactivated
         context.subscriptions.push(fileBrowserProvider);
     }
-    
+
     public static get instance(): ProjectManager {
         if (!ProjectManager._instance) {
             throw new Error("ProjectManager not initialized. Call ProjectManager.initialize(context) first.");
@@ -73,7 +73,6 @@ export class ProjectManager implements vscode.TreeDataProvider<ProjectItem> {
             ProjectManager._instance = new ProjectManager(context);
         }
     }
-
 
     public getActiveProject(): ProjectConfig | null {
         return this.currentActiveProject;
@@ -108,10 +107,10 @@ export class ProjectManager implements vscode.TreeDataProvider<ProjectItem> {
         const extensions = ['.v', '.vhd', '.sv'];
         let files: string[] = [];
         const entries = fs.readdirSync(dir, { withFileTypes: true });
-    
+
         for (const entry of entries) {
             const fullPath = path.join(dir, entry.name);
-    
+
             if (entry.isDirectory()) {
                 // Exclude directories that are in the excludeFolders list
                 const relativeDir = path.relative(vscode.workspace.workspaceFolders![0].uri.fsPath, fullPath).replace(/\\/g, '/');
@@ -122,7 +121,7 @@ export class ProjectManager implements vscode.TreeDataProvider<ProjectItem> {
                 files.push(fullPath);  // Add file to the list
             }
         }
-    
+
         return files;
     }
 
@@ -147,8 +146,9 @@ export class ProjectManager implements vscode.TreeDataProvider<ProjectItem> {
             vscode.window.showErrorMessage('Workspace configuration is not loaded.');
             return;
         }
-    
+
         this.workspaceConfig.projects.forEach(project => this.loadProject(project));
+        this.currentActiveProject = null;
         this.workspaceConfig.projects.forEach((project: any) => {
             if (project.active) {
                 this.currentActiveProject = project;
@@ -165,7 +165,7 @@ export class ProjectManager implements vscode.TreeDataProvider<ProjectItem> {
             vscode.window.showErrorMessage('Workspace is not set.');
             return;
         }
-    
+
         this.workspaceConfigPath = path.join(workspaceFolder.uri.fsPath, this.workspaceExtension);
         if (fs.existsSync(this.workspaceConfigPath)) {
             const content = fs.readFileSync(this.workspaceConfigPath, 'utf-8');
@@ -206,11 +206,11 @@ export class ProjectManager implements vscode.TreeDataProvider<ProjectItem> {
             vscode.window.showErrorMessage('Workspace configuration not loaded.');
             return;
         }
-    
+
         const project = this.workspaceConfig.projects.find(p => p.name === item.label);
         if (project) {
             project.active = state;
-    
+
             if (state) {
                 // Disable all other projects when enabling the selected one
                 this.workspaceConfig.projects.forEach(p => {
@@ -219,15 +219,15 @@ export class ProjectManager implements vscode.TreeDataProvider<ProjectItem> {
                     }
                 });
                 this.currentActiveProject = project;
-                this._onDidUpdateProject.fire();
             }
-    
+
             vscode.window.showInformationMessage(`Project ${project.name} has been ${state ? 'enabled' : 'disabled'}.`);
             this.saveWorkspaceConfig();
             this.refresh();
+            this._onDidUpdateProject.fire();
         }
     }
-    
+
     /**
      * Handles file changes (create, delete, update) and updates the .prjinfo file.
      */
@@ -246,16 +246,16 @@ export class ProjectManager implements vscode.TreeDataProvider<ProjectItem> {
             return; // No specific action needed for updates in this case
         } else {
             // Find the project that this file belongs to
-            const selectedProject = this.workspaceConfig?.projects.find(project => 
+            const selectedProject = this.workspaceConfig?.projects.find(project =>
                 project.projectRoot && filePath.startsWith(project.projectRoot)
             );
-    
+
             if (selectedProject) {
                 // Ensure sourceFiles array is initialized
                 if (!selectedProject.info.sourceFiles) {
                     selectedProject.info.sourceFiles = [];
                 }
-    
+
                 if (changeType === 'create') {
                     if (!selectedProject.info.sourceFiles.includes(filePath)) {
                         selectedProject.info.sourceFiles.push(filePath);
@@ -273,7 +273,7 @@ export class ProjectManager implements vscode.TreeDataProvider<ProjectItem> {
             }
         }
     }
-    
+
     /**
      * Initializes a FileSystemWatcher to watch for changes in .v, .vhd, .sv files.
      */
@@ -281,31 +281,31 @@ export class ProjectManager implements vscode.TreeDataProvider<ProjectItem> {
         if (!this.workspaceConfig) {
             return;
         }
-    
+
         // Dispose of any existing watcher before creating a new one
         if (this.watcher) {
             this.watcher.dispose();
         }
-    
+
         // Watch all projects' root folders and subfolders
         this.workspaceConfig.projects.forEach(project => {
             if (project.projectRoot) {
                 const projectRootUri = vscode.Uri.file(project.projectRoot);
-    
+
                 // Create a FileSystemWatcher for any files within the project root directory
                 const watcherPattern = new vscode.RelativePattern(projectRootUri, '**/*.{v,vhd,sv}');
                 this.watcher = vscode.workspace.createFileSystemWatcher(watcherPattern);
-    
+
                 // Watch for file creation
                 this.watcher.onDidCreate((uri) => {
                     this.handleFileChange(uri, 'create');
                 });
-    
+
                 // Watch for file deletion
                 this.watcher.onDidDelete((uri) => {
                     this.handleFileChange(uri, 'delete');
                 });
-    
+
                 // Watch for file rename/move
                 this.watcher.onDidChange((uri) => {
                     this.handleFileChange(uri, 'update');
@@ -407,32 +407,32 @@ export class FileBrowserProvider implements vscode.TreeDataProvider<FileBrowserI
     getTreeItem(element: FileBrowserItem): vscode.TreeItem {
         return element;
     }
-    
+
     async getChildren(element?: FileBrowserItem): Promise<FileBrowserItem[]> {
         if (!element) {
             // Root level items: list all projects from the workspace configuration
             const items: FileBrowserItem[] = [];
             const workspaceConfig = this.projectManager.workspaceConfig; // Use workspaceConfig from ProjectManager
-    
+
             if (workspaceConfig) {
                 workspaceConfig.projects.forEach(project => {
                     const content = fs.readFileSync(project.projectInfoPath, 'utf-8');
                     const projectConfig = JSON.parse(content) as ProjectConfig;
                     project.projectRoot = projectConfig.projectRoot || workspaceConfig.workspaceRoot;
-    
+
                     const projectUri = vscode.Uri.file(project.projectRoot || '');
                     const collapsibleState = project.active ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None;
-    
+
                     const projectItem = new FileBrowserItem(
                         project.name,
                         projectUri,
                         collapsibleState
                     );
-    
+
                     // Set context value based on the active status of the project
                     projectItem.contextValue = project.active ? 'activeProject' : 'inactiveProject';
                     projectItem.iconPath = vscode.ThemeIcon.Folder; // Set an icon for projects
-    
+
                     items.push(projectItem);
                 });
             }
@@ -446,12 +446,12 @@ export class FileBrowserProvider implements vscode.TreeDataProvider<FileBrowserI
                     return this.getFilesAndFolders(element.resourceUri);
                 }
             }
-    
+
             // If the element is a folder, return its files and subfolders
             return this.getFilesAndFolders(element.resourceUri);
         }
     }
-    
+
     private async getFilesAndFolders(uri: vscode.Uri): Promise<FileBrowserItem[]> {
         const items: FileBrowserItem[] = [];
         const skipExtensions = ['.prjinfo', '.workspace', '.ews']; // List of extensions to skip
@@ -462,11 +462,11 @@ export class FileBrowserProvider implements vscode.TreeDataProvider<FileBrowserI
                 if (skipExtensions.some(ext => name.endsWith(ext))) {
                     continue;
                 }
-    
+
                 const itemUri = vscode.Uri.joinPath(uri, name);
                 let collapsibleState = vscode.TreeItemCollapsibleState.None;
                 let command: vscode.Command | undefined;
-    
+
                 if (fileType === vscode.FileType.Directory) {
                     // If it's a directory, it should be collapsible
                     collapsibleState = vscode.TreeItemCollapsibleState.Collapsed;
@@ -478,7 +478,7 @@ export class FileBrowserProvider implements vscode.TreeDataProvider<FileBrowserI
                         arguments: [itemUri]
                     };
                 }
-    
+
                 const fileBrowserItem = new FileBrowserItem(
                     name,
                     itemUri,
@@ -486,7 +486,7 @@ export class FileBrowserProvider implements vscode.TreeDataProvider<FileBrowserI
                     command
                 );
                 fileBrowserItem.iconPath = fileType === vscode.FileType.Directory ? vscode.ThemeIcon.Folder : vscode.ThemeIcon.File;
-    
+
                 items.push(fileBrowserItem);
             }
         } catch (error) {
