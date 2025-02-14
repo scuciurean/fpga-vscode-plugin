@@ -15,7 +15,17 @@
 			"outFiles": [
 				"${workspaceFolder}/out/**/*.js"
 			],
-			"preLaunchTask": "${defaultBuildTask}"
+			"preLaunchTask": "[Components] Wizard"
+		},
+		{
+			"name": "Python Debugger: Current File with Arguments",
+			"type": "debugpy",
+			"request": "launch",
+			"program": "${file}",
+			"console": "integratedTerminal",
+			"args": [
+				"${command:pickArgs}"
+			]
 		}
 	]
 }

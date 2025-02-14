@@ -25,6 +25,41 @@
 			"group": {
 				"kind": "build",
 			}
+		},
+		{
+			"label": "[Components] Wizard",
+			"type": "shell",
+			"command": "npm run build",
+			"options": {
+				"cwd": "${workspaceFolder}/src/components/wizard"
+			},
+			"problemMatcher": [],
+			"group": {
+				"kind": "build",
+			}
+		},
+		{
+			"label": "[Components] AnotherComponent",
+			"type": "shell",
+			"command": "echo ok",
+			"options": {
+				"cwd": "${workspaceFolder}/src/components/anotherComponent"
+			},
+			"problemMatcher": [],
+			"group": {
+				"kind": "build",
+			}
+		},
+		{
+			"label": "Build All Components",
+			"dependsOn": [
+				"[Components] Wizard",
+				"[Components] AnotherComponent"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
 		}
 	]
 }
