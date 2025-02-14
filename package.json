@@ -28,6 +28,10 @@
         "title": "Disable Project"
       },
       {
+        "command": "projectManager.configureProject",
+        "title": "Configure Project"
+      },
+      {
         "command": "fileBrowser.newFile",
         "title": "New File"
       },
@@ -115,6 +119,11 @@
         },
         {
           "command": "projectManager.disableProject",
+          "when": "view == projectBrowserView && viewItem == activeProject",
+          "group": "navigation"
+        },
+        {
+          "command": "projectManager.configureProject",
           "when": "view == projectBrowserView && viewItem == activeProject",
           "group": "navigation"
         },

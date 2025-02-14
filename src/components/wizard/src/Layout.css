@@ -1,0 +1,166 @@
+/* src/Layout.css */
+
+/* Reset default HTML/body styles to eliminate unexpected spacing */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif; /* Optional: Set a default font */
+}
+
+/* Ensure all elements inherit box-sizing for consistent sizing */
+*,
+*::before,
+*::after {
+  box-sizing: inherit;
+}
+
+/* Main container that fills the viewport */
+.layout-container {
+  display: flex;
+  flex-direction: column;
+  width: 100vw; /* 100% of the viewport width */
+  height: 100vh; /* 100% of the viewport height */
+}
+
+/* Top Bar */
+.layout-top-bar {
+  height: 60px;
+  background-color: #fffccc; /* Light yellow */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1px solid #ddd;
+  flex-shrink: 0; /* Prevent shrinking */
+}
+
+/* Middle section containing navigator and main content */
+.layout-middle {
+  display: flex;
+  flex: 1; /* Occupies all remaining vertical space */
+  overflow: hidden; /* Prevent overflow */
+}
+
+/* Left Navigator with scroll */
+.layout-left-sidebar {
+  width: 200px;
+  background-color: #ffcccc; /* Light red */
+  padding: 1rem;
+  overflow-y: auto; /* Scrollable if content exceeds height */
+  flex-shrink: 0; /* Prevent shrinking */
+}
+
+/* Main Content Area */
+.layout-main-content {
+  flex: 1; /* Takes up all remaining horizontal space */
+  background-color: #ccffcc; /* Light green */
+  padding: 1rem;
+  overflow-y: auto; /* Optional: Make main content scrollable */
+  position: relative; /* To position MiniMap and Controls absolutely within */
+}
+
+/* Bottom Bar */
+.layout-bottom-bar {
+  height: 50px;
+  width: 100%;
+  background-color: #ccccff; /* Light blue */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0; /* Prevent shrinking */
+}
+
+/* Sidebar List Reset */
+.layout-left-sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Individual Sidebar Item */
+.sidebar-item {
+  background-color: #ffffff; /* White background */
+  border: 1px solid #ddd; /* Light gray border */
+  border-radius: 8px; /* Rounded corners */
+  padding: 10px 15px; /* Inner spacing */
+  margin-bottom: 10px; /* Space between items */
+  cursor: pointer; /* Pointer cursor on hover */
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+/* Hover Effect for Sidebar Items */
+.sidebar-item:hover {
+  background-color: #f0f0f0; /* Slightly darker background on hover */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+/* Active/Selected Sidebar Item */
+.sidebar-item.active {
+  background-color: #e0e0e0; /* Different background for active item */
+  border-color: #aaa; /* Darker border */
+}
+
+/* Custom Scrollbar for Navigator (WebKit Browsers) */
+.layout-left-sidebar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.layout-left-sidebar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.layout-left-sidebar::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.layout-left-sidebar::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* For Firefox */
+.layout-left-sidebar {
+  scrollbar-width: thin;
+  scrollbar-color: #888 #f1f1f1;
+}
+
+/* Position MiniMap and Controls Side by Side in Top Right Corner */
+.controls-container {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: row;
+  gap: 10px; /* Space between MiniMap and Controls */
+  z-index: 4; /* Ensure it stays above other elements */
+}
+
+/* Position MiniMap in the Top Right Corner */
+.react-flow__minimap {
+  position: absolute;
+  top: 10px;
+  z-index: 4; /* Ensure it stays above other elements */
+}
+
+/* Optionally, adjust Controls size or appearance */
+.react-flow__controls {
+  position: absolute;
+  top: 10px;
+  width: 25px;
+  height: 100px;
+  z-index: 4; /* Ensure it stays above other elements */
+}
+
+/* Hide the "react flow" text */
+.react-flow__attribution {
+  /*
+  Please only hide this attribution when you are subscribed to
+  React Flow Pro: https://pro.reactflow.dev/pricing"
+  */
+  /* TODO: check this */
+  display: none;
+}
