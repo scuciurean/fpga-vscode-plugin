@@ -90,6 +90,10 @@
         {
           "id": "hierarchicalView",
           "name": "Block View"
+        },
+        {
+          "id": "executionView",
+          "name": "Runs"
         }
       ]
     },
