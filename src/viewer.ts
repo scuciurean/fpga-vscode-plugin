@@ -171,16 +171,21 @@ export class ModuleListProvider implements vscode.TreeDataProvider<ModuleListTre
     }
 
     getChildren(): Thenable<ModuleListTreeItem[]> {
-        const moduleList = this.moduleDataService.getModuleList();
-        let topItem = this.moduleDataService.getTopModule();
-        topItem.label = "TOP MODULE : " + topItem.moduleName;
-        topItem.command = undefined;
-        topItem.description = "🟢";
+        const project = ProjectManager.instance.getActiveProject();
+        if (project != null) {
+            const moduleList = this.moduleDataService.getModuleList();
+            let topItem = this.moduleDataService.getTopModule();
+            topItem.label = "TOP MODULE : " + topItem.moduleName;
+            topItem.command = undefined;
+            topItem.description = "O";
 
-        return Promise.resolve([
-            topItem,
-            ...moduleList.map(item => new ModuleListTreeItem(item.moduleName, item.path))
-        ]);
+            return Promise.resolve([
+                topItem,
+                ...moduleList.map(item => new ModuleListTreeItem(item.moduleName, item.path))
+            ]);
+        } else {
+            return Promise.resolve([]);
+        }
     }
 
     dispose() {
@@ -248,7 +253,6 @@ export class ModuleListProvider implements vscode.TreeDataProvider<ModuleListTre
     }
 }
 
-
 export class HierarchicalViewer implements vscode.TreeDataProvider<TreeItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<TreeItem | undefined | null | void> = new vscode.EventEmitter<TreeItem | undefined | null | void>();
     readonly onDidChangeTreeData: vscode.Event<TreeItem | undefined | null | void> = this._onDidChangeTreeData.event;
@@ -289,29 +293,31 @@ export class HierarchicalViewer implements vscode.TreeDataProvider<TreeItem> {
     
     getChildren(element?: TreeItem): Thenable<TreeItem[]> {
         const moduleHierarchy = this.moduleDataService.getModuleHierarchy();
-
-        if (!element) {
-            const mainModule = this.moduleDataService.getTopModule();
-            // If no element is passed, return the main module as the root of the tree
-            if (mainModule) {
-                const rootModule = moduleHierarchy[mainModule.moduleName];
-                return Promise.resolve([new TreeItem(mainModule.moduleName, vscode.TreeItemCollapsibleState.Collapsed, rootModule)]);
+        const project = ProjectManager.instance.getActiveProject();
+        if (project != null) {
+            if (!element) {
+                const mainModule = this.moduleDataService.getTopModule();
+                // If no element is passed, return the main module as the root of the tree
+                if (mainModule) {
+                    const rootModule = moduleHierarchy[mainModule.moduleName];
+                    return Promise.resolve([new TreeItem(mainModule.moduleName, vscode.TreeItemCollapsibleState.Collapsed, rootModule)]);
+                }
+                return Promise.resolve([]);
+            } else {
+                // Retrieve the submodules of the current module
+                const submodules = element.moduleData?.submodules || [];
+                        // Create tree items for each submodule
+                const submoduleItems = submodules.map((submodule: any) => {
+                    return new TreeItem(
+                        `${submodule.instance_name} (${submodule.module_name})`,
+                        submodule.submodules.length > 0 ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None,
+                        submodule
+                    );
+                });
+                        return Promise.resolve(submoduleItems);
             }
-            return Promise.resolve([]);
         } else {
-            // Retrieve the submodules of the current module
-            const submodules = element.moduleData?.submodules || [];
-
-            // Create tree items for each submodule
-            const submoduleItems = submodules.map((submodule: any) => {
-                return new TreeItem(
-                    `${submodule.instance_name} (${submodule.module_name})`,
-                    submodule.submodules.length > 0 ? vscode.TreeItemCollapsibleState.Collapsed : vscode.TreeItemCollapsibleState.None,
-                    submodule
-                );
-            });
-
-            return Promise.resolve(submoduleItems);
+        return Promise.resolve([])
         }
     }
 
