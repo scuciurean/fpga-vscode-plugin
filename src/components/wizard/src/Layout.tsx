@@ -1,13 +1,18 @@
-// src/Layout.tsx
-import React from 'react';
+import React, { useContext, useEffect } from 'react';
 import './Layout.css';
 import ClockTree from './views/ClockTree'; // Import the ClockTree component
 import View from './views/View'; // Import the generic View component
 import { ConfigurationContext } from './views/ClockTree';
-import { useContext } from 'react';
+import { SidebarOption } from './App'; // Assuming SidebarOption is defined in App.tsx
+
+const viewLUT: { [key: string]: React.FC<any> } = {
+  // The keys should match the sidebar option names
+  'Clock': ClockTree,
+  // 'Dashboard': Dashboard,
+};
 
 interface LayoutProps {
-  options: string[]; // List of navigator items
+  options: SidebarOption[]; // Now an array of objects
 }
 
 interface LayoutState {
@@ -17,15 +22,14 @@ interface LayoutState {
 class Layout extends React.Component<LayoutProps, LayoutState> {
   constructor(props: LayoutProps) {
     super(props);
-    this.state = {
-      activeIndex: null,
-    };
+    this.state = { activeIndex: null };
   }
 
   handleItemClick = (index: number) => {
     this.setState({ activeIndex: index });
   };
 
+  // Determine which view to render based on the selected option.
   renderActiveView() {
     const { activeIndex } = this.state;
     const { options } = this.props;
@@ -40,13 +44,9 @@ class Layout extends React.Component<LayoutProps, LayoutState> {
     }
 
     const selectedOption = options[activeIndex];
-
-    if (selectedOption === 'Clock') {
-      return <ClockTree />;
-    } else {
-      // For other options, render generic View
-      return <View title={selectedOption} />;
-    }
+    const Component = viewLUT[selectedOption.name] || View;
+    return <Component config={selectedOption.context} title={selectedOption.name} />;
+  
   }
 
   render() {
@@ -66,21 +66,29 @@ class Layout extends React.Component<LayoutProps, LayoutState> {
 
 export default Layout;
 
-// Create a separate functional component to use hooks
+// Create a separate functional component to leverage hooks.
 const LayoutContent: React.FC<{
   activeIndex: number | null;
-  options: string[];
+  options: SidebarOption[];
   handleItemClick: (index: number) => void;
   renderActiveView: () => React.ReactNode;
 }> = ({ activeIndex, options, handleItemClick, renderActiveView }) => {
   const { config, setConfig } = useContext(ConfigurationContext);
+
+  useEffect(() => {
+    if (activeIndex !== null) {
+      const selectedOption = options[activeIndex];
+      if (selectedOption.name === 'Clock') {
+        setConfig({ clocks: selectedOption.context });
+      }
+    }
+  }, [activeIndex, options, setConfig]);
 
   const handleApply = () => {
     if (!config) {
       alert('No configuration to apply.');
       return;
     }
-
     const jsonStr = JSON.stringify(config, null, 2);
     const blob = new Blob([jsonStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -96,12 +104,11 @@ const LayoutContent: React.FC<{
     if (!file) {
       return;
     }
-
     const reader = new FileReader();
     reader.onload = (e) => {
       try {
         const json = JSON.parse(e.target?.result as string);
-        // Basic validation
+        // Basic validation: check if json.clocks exists and is an Array.
         if (json.clocks && Array.isArray(json.clocks)) {
           setConfig(json);
           alert('Configuration imported successfully.');
@@ -134,14 +141,16 @@ const LayoutContent: React.FC<{
                   className={`sidebar-item ${activeIndex === index ? 'active' : ''}`}
                   onClick={() => handleItemClick(index)}
                 >
-                  {item}
+                  {item.name}
+                  {/* Optional: render an icon if provided */}
+                  {item.icon && <span className={`icon-${item.icon}`}></span>} 
                 </div>
               </li>
             ))}
           </ul>
         </div>
 
-        {/* Main Content */}
+        {/* Main Content Area */}
         <div className="layout-main-content">{renderActiveView()}</div>
       </div>
 
@@ -196,5 +205,3 @@ const LayoutContent: React.FC<{
     </div>
   );
 };
-
-

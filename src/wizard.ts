@@ -50,23 +50,8 @@ export class Wizard {
             return;
           }
 
-          // Define the CSS style to override dark theme colors
-          const customStyle = `
-            <style>
-              html, body {
-                background-color: #fff !important;
-                color: #000 !important;
-              }
-              /* Force all elements to inherit these colors */
-              * {
-                background-color: transparent !important;
-                color: inherit !important;
-              }
-            </style>
-          `;
-
           // Inject the <base> tag and the custom CSS into the <head>
-          let html = data.replace(/<head>/i, `<head><base href="${indexHtmlPath}/">${customStyle}`);
+          let html = data.replace(/<head>/i, `<head><base href="${indexHtmlPath}/">`);
 
           // Rewrite asset URLs (src/href attributes) that start with "/" to load correctly in the webview
           html = html.replace(/(src|href)="\/([^"]+)"/g, (match, attr, resourcePath) => {
@@ -77,25 +62,12 @@ export class Wizard {
 
           panel.webview.html = html;
 
-          // Read the JSON file and send it to the webview
-          const optionsPath = path.join('/home/sergiu/Workspace/vscode-plugin/upstream/src/components/wizard/public', 'options.json');
+          const optionsPath = path.join(this.context.extensionPath, 'library', 'basil.json');
           if (fs.existsSync(optionsPath)) {
               const options = fs.readFileSync(optionsPath, 'utf-8');
-              panel.webview.postMessage({ type: 'options', data: JSON.parse(options) });
+              const data = JSON.parse(options);
+              panel.webview.postMessage({ type: 'options', data });
           }
-
-          // Handle messages from the webview
-          panel.webview.onDidReceiveMessage(
-              (message) => {
-                  switch (message.command) {
-                      case 'alert':
-                          vscode.window.showInformationMessage(message.text);
-                          return;
-                  }
-              },
-              undefined,
-              this.context.subscriptions
-          );
         });
       })
     );

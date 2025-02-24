@@ -100,22 +100,6 @@
   export const ConfigurationProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const [config, setConfig] = useState<{ clocks: ClockNodeData[] } | null>(null);
 
-    useEffect(() => {
-      // Fetch the clocktree.json dataree.json...');
-      fetch('/clocktree.json')
-        .then((response) => {
-          console.log('Response received:', response);
-          return response.json();
-        })
-        .then((data) => {
-          console.log('Parsed data:', data);
-          setConfig(data);
-        })
-        .catch((error) => {
-          console.error('Error fetching clocktree.json:', error);
-        });
-    }, []);
-
     return (
       <ConfigurationContext.Provider value={{ config, setConfig }}>
         {children}
@@ -547,7 +531,6 @@
       setConfig({ ...config!, clocks: updatedClocks });
     };
 
-    
     const submitInput = () => {
       if (!editingNodeId || !config) return;
       const clockIndex = config.clocks.findIndex((c) => c.id === editingNodeId);

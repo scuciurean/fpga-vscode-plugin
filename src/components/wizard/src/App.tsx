@@ -1,14 +1,18 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import ReactDOM from 'react-dom/client';
 import Layout from './Layout';
 import './Layout.css'; // Global styles
 import { ConfigurationProvider } from './views/ClockTree';
 
-// Define an interface for the complete JSON structure
+export interface SidebarOption {
+  name: string;
+  icon: string;
+  path: string;
+  context: any[];
+}
+
 export interface AppData {
-  sidebarOptions: string[];
-  clockTree: any; // Replace 'any' with a more specific type if available
-  // Add other sections as needed
+  sidebarOptions: SidebarOption[];
 }
 
 interface AppState {
@@ -31,11 +35,15 @@ export class App extends React.Component<{}, AppState> {
     window.removeEventListener('message', this.handleMessage);
   }
 
-  // Message event handler that updates the state when options are received
+  // Message event handler that updates the state when a new configuration is received
   handleMessage = (event: MessageEvent) => {
     const message = event.data;
-    if (message.type === 'options' && message.data && Array.isArray(message.data.sidebarOptions)) {
-      this.setState({ appData: message.data });
+    if (message.data) {
+      switch (message.type) {
+        case 'options':
+          this.setState({ appData: message.data });
+        break;
+      }
     }
   };
 
@@ -58,3 +66,4 @@ export class App extends React.Component<{}, AppState> {
   }
 }
 
+export default App;
